@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helios-api
+  labels:
+    app: helios-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: helios-api
+  template:
+    metadata:
+      labels:
+        app: helios-api
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/your-org/helios-api:latest
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: helios-api-env
+          readinessProbe:
+            httpGet: { path: /health, port: 8080 }
+            initialDelaySeconds: 2
+          livenessProbe:
+            httpGet: { path: /health, port: 8080 }
+            initialDelaySeconds: 5
+          resources:
+            requests: { cpu: 250m, memory: 256Mi }
+            limits:   { cpu: 1,    memory: 512Mi }

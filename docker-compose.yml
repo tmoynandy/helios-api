@@ -1,0 +1,30 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8080:8080"
+    env_file: [.env]
+    depends_on:
+      - db
+      - cache
+      - rabbit
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app}
+      POSTGRES_DB: ${POSTGRES_DB:-helios-api}
+    ports: ["5432:5432"]
+    volumes: [db-data:/var/lib/postgresql/data]
+
+  cache:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  rabbit:
+    image: rabbitmq:3-management
+    ports: ["5672:5672", "15672:15672"]
+
+volumes:
+  db-data: {}
