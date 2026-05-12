@@ -3,6 +3,10 @@
 .env.*
 !.env.example
 
+# deploy secrets — never commit real secret values
+deploy/k8s/secrets.env
+deploy/**/secrets.env
+
 # editor
 .idea/
 .vscode/

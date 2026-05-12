@@ -48,3 +48,24 @@ jobs:
       # - name: Deploy to Railway
       #   if: github.ref == 'refs/heads/main'
       #   run: curl -X POST "${{ secrets.RAILWAY_DEPLOY_WEBHOOK }}"
+
+  security:
+    name: Security scans
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Secret scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+      - name: CodeQL analyze
+        uses: github/codeql-action/analyze@v3

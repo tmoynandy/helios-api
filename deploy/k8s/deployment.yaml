@@ -6,6 +6,13 @@ metadata:
     app: helios-api
 spec:
   replicas: 3
+  # RollingUpdate with maxUnavailable=0 guarantees zero-downtime deploys when
+  # combined with the PodDisruptionBudget emitted when replicas > 1.
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: helios-api
@@ -14,20 +21,42 @@ spec:
       labels:
         app: helios-api
     spec:
+      # Default K8s terminationGracePeriodSeconds is 30s — set it explicitly
+      # here so it's easy to raise if your graceful-shutdown drain needs longer.
+      terminationGracePeriodSeconds: 30
       containers:
         - name: api
           image: ghcr.io/your-org/helios-api:latest
           ports:
-            - containerPort: 8080
+            - name: http
+              containerPort: 8080
           envFrom:
             - secretRef:
                 name: helios-api-env
+          # startupProbe disables readiness/liveness until the container
+          # first reports healthy — critical for JVM stacks that cold-start
+          # in 20-60s. Once it succeeds, readinessProbe takes over.
+          startupProbe:
+            httpGet: { path: /health, port: 8080 }
+            failureThreshold: 15
+            periodSeconds: 2
           readinessProbe:
             httpGet: { path: /health, port: 8080 }
-            initialDelaySeconds: 2
+            periodSeconds: 5
+            timeoutSeconds: 2
           livenessProbe:
             httpGet: { path: /health, port: 8080 }
-            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
           resources:
-            requests: { cpu: 250m, memory: 256Mi }
-            limits:   { cpu: 1,    memory: 512Mi }
+            requests: { cpu: 200m, memory: 256Mi }
+            limits:   { cpu: 1, memory: 512Mi }
+          # Run as non-root + drop all Linux capabilities — belt-and-suspenders
+          # since the Dockerfile already sets a non-root USER.
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ["ALL"]

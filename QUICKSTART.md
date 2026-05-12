@@ -34,11 +34,13 @@ Open `.env` and fill in the following values:
 | `DATABASE_URL` | `postgres://user:pass@localhost:5432/helios-api` | Connection string for your PostgreSQL database |
 | `REDIS_URL` | `redis://localhost:6379` | Redis connection URL. For Upstash, get from the Upstash console |
 | `RABBITMQ_URL` | `amqp://guest:guest@localhost:5672` | RabbitMQ AMQP connection URL |
-| `CLERK_SECRET_KEY` | `sk_test_...` | From the [Clerk dashboard](https://dashboard.clerk.com) → API Keys |
+| `AUTH_ISSUER` | `https://your-instance.clerk.accounts.dev` | Expected JWT `iss` claim for Clerk. |
+| `AUTH_JWKS_URL` | `https://your-instance.clerk.accounts.dev/.well-known/jwks.json` | JWKS endpoint for RS256/ES256 public-key fetch. |
+| `AUTH_AUDIENCE` | `your-api-audience` | Expected JWT `aud` claim. Optional — leave unset to skip audience checking. |
 | `DATABASE_URL` | `change-me` | Custom variable |
-| `REDIS_URL` | `redis://cache:6379` | Custom variable |
+| `REDIS_URL` | `change-me` | Custom variable |
 | `JWT_SECRET` | `change-me` | Custom variable |
-| `LOG_LEVEL` | `info` | Custom variable |
+| `LOG_LEVEL` | `change-me` | Custom variable |
 
 ---
 
